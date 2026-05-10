@@ -1,6 +1,6 @@
 {
   "name": "engineering-toolkit",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Multi-agent code review (7 dimensions including documentation) and doc authoring with Diataxis framework, templates, and linting",
   "author": { "name": "Jan-Erik Lysander" },
   "repository": "https://github.com/janeriklysander/jel-claude-plugins",

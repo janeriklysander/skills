@@ -2,12 +2,36 @@
 name: code-review
 description: Code review a pull request
 argument-hint: "[PR URL, PR number, branch name, or leave empty for auto-detect]"
-allowed-tools: "Agent, Bash(gh *), Bash(git *), Bash(bash ${CLAUDE_PLUGIN_ROOT}/skills/docs/scripts/lint-docs.sh *), Read, Glob, Grep"
+allowed-tools: "Agent, Bash(gh *), Bash(git *), Bash(code *), Bash(bash ${CLAUDE_PLUGIN_ROOT}/skills/docs/scripts/lint-docs.sh *), Read, Glob, Grep, Write"
 ---
 
 # Code Review
 
 You are a code review coordinator. You dispatch specialist agents, normalize their findings, and present a structured review. Your philosophy: **"Leave the codebase better than you found it."**
+
+## Phase 0: Pre-flight
+
+Check for VS Code and the SARIF Viewer extension:
+
+```bash
+code --version 2>/dev/null
+```
+
+**If `code` is not in PATH:** proceed without VS Code integration. Findings will be written to `code-review.sarif` — the user can open it in any IDE that supports SARIF (JetBrains, Eclipse, VS Code, etc.). Do not block on this.
+
+**If `code` is available:** check for a SARIF extension:
+
+```bash
+code --list-extensions 2>/dev/null | grep -i sarif
+```
+
+If no SARIF extension is installed, inform the user and continue:
+
+```
+Note: no SARIF Viewer extension detected in VS Code. Install "SARIF Viewer" (Microsoft,
+ID: MS-SarifVSCode.sarif-viewer) to view findings inline. Continuing — code-review.sarif
+will still be written and opened; you can install the extension and reopen the file at any time.
+```
 
 ## Phase 1: Gather the diff
 
@@ -100,27 +124,82 @@ After all agents complete:
 
 ## Phase 5: Present results
 
-Output the review in two parts: **numbered details** first (scroll-up reading), then a **summary table at the bottom** so it sits right above the user's input box for easy reference.
+### Step 1: Write code-review.sarif
+
+Write all findings to `code-review.sarif` in the repo root using SARIF 2.1.0 format. Each finding becomes one `rule` entry (in `tool.driver.rules`) and one `result` entry.
+
+**Severity → SARIF level mapping:**
+
+| Severity | SARIF level |
+|----------|-------------|
+| BLOCKER | `"error"` |
+| SUGGESTION | `"warning"` |
+| NITPICK | `"note"` |
+
+**SARIF structure:**
+
+```json
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [{
+    "tool": {
+      "driver": {
+        "name": "engineering-toolkit/code-review",
+        "version": "1.0.0",
+        "rules": [
+          {
+            "id": "SEC-1",
+            "shortDescription": { "text": "SQL injection in login query" },
+            "defaultConfiguration": { "level": "error" },
+            "properties": { "tags": ["security"] }
+          }
+        ]
+      }
+    },
+    "results": [
+      {
+        "ruleId": "SEC-1",
+        "level": "error",
+        "message": {
+          "text": "What: User input is concatenated directly into the SQL query string.\n\nWhy: An attacker can read or modify any row in the database by injecting SQL via the login form.\n\nSuggestion: Use parameterized queries: db.query('SELECT * FROM users WHERE id = $1', [userId])"
+        },
+        "locations": [{
+          "physicalLocation": {
+            "artifactLocation": {
+              "uri": "auth.ts",
+              "uriBaseId": "%SRCROOT%"
+            },
+            "region": { "startLine": 42 }
+          }
+        }]
+      }
+    ]
+  }]
+}
+```
+
+**Rules:**
+- `id` uses the `DIM-N` format (`SEC-1`, `PRF-2`, etc.) — numbers unique across all dimensions
+- `message.text` contains the full What / Why / Suggestion, separated by `\n\n` — this is what appears in the IDE annotation panel
+- `uri` is relative to the repo root (no leading `/`)
+- Include `region.startLine`; add `endLine` when the finding spans multiple lines
+
+After writing the file, check whether `code-review.sarif` is already in `.gitignore`. If not, offer to add it.
+
+### Step 2: Open in VS Code (if available)
+
+If `code` was found in Phase 0:
+
+```bash
+code code-review.sarif
+```
+
+### Step 3: Print terminal summary
+
+Output only the summary in the terminal — findings live in the SARIF file:
 
 ```markdown
-## Code Review Details
-
-#### 1. SQL injection in login query
-
-**Severity:** BLOCKER | **File:** `auth.ts:42` | **Dimension:** security
-
-**What:** One-sentence description of the issue.
-
-**Why:** Why this matters — what can go wrong, what's the impact.
-
-**Suggestion:**
-[concrete fix — code snippet, pseudocode, or actionable prose]
-
-#### 2. N+1 query in user list
-...
-
----
-
 ## Code Review Summary
 
 **Files reviewed:** N | **Agents dispatched:** [list]
@@ -130,21 +209,20 @@ Output the review in two parts: **numbered details** first (scroll-up reading), 
 
 [1-3 sentence summary: is this safe to merge? what are the key concerns?]
 
-| # | Sev | File | Finding | Rec |
-|---|-----|------|---------|-----|
-| SEC-1 | BLK | `auth.ts:42` | SQL injection in login query | Fix now |
-| PRF-2 | SUG | `user.ts:88` | N+1 query in user list | Follow-up |
-| MNT-3 | NIT | `utils.ts:12` | Slightly better name for helper | Disregard |
+| # | Sev | File | Finding |
+|---|-----|------|---------|
+| SEC-1 | BLK | `auth.ts:42` | SQL injection in login query |
+| PRF-2 | SUG | `user.ts:88` | N+1 query in user list |
+| MNT-3 | NIT | `utils.ts:12` | Slightly better name for helper |
 
 `COR` correctness · `SEC` security · `ARC` architecture · `PRF` performance · `MNT` maintainability · `OBS` observability · `DOC` documentation
+
+Full findings: `code-review.sarif` — open in VS Code or any SARIF-compatible IDE.
 ```
 
-### Format rules
-
-- **Details first:** numbered findings with full What/Why/Suggestion. The user scrolls up to read them.
-- **Summary table last:** sits at the bottom of the output, right above the input box. One row per finding. Severity abbreviations: `BLK`, `SUG`, `NIT`. Sort by severity (blockers first), then by file.
-- **Finding IDs** use the format `DIM-N` where `DIM` is the dimension abbreviation and `N` is a unique number. The number alone is sufficient for referencing ("descope 2"), but the prefix gives at-a-glance dimension context. Numbers must be unique across all dimensions. A dimension legend is printed below the table.
-- **Nitpick details are optional.** If there are many nitpicks, you may list them only in the summary table and omit their detail sections to keep output focused.
+**Summary format rules:**
+- One row per finding. Sort by severity (blockers first), then by file.
+- Nitpicks may be omitted from the table if there are many; note the count instead.
 
 ## Phase 6: Follow-up issues
 
