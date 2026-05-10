@@ -3,47 +3,55 @@
 
 config:
   # Headings
-  MD001: true                    # Heading levels increment by one
+  MD001: true                     # Heading levels increment by one
   MD003:
-    style: "atx"                 # Use # style headings
-  MD022: true                    # Headings should be surrounded by blank lines
-  MD023: true                    # Headings must start at the beginning of the line
+    style: "atx"                  # Use # style headings
+  MD022: true                     # Headings should be surrounded by blank lines
+  MD023: true                     # Headings must start at the beginning of the line
   MD024:
-    siblings_only: true          # Allow duplicate headings in different sections
-  MD025: true                    # Single top-level heading
-  MD041: true                    # First line should be a top-level heading
+    siblings_only: true           # Allow duplicate headings in different sections
+  MD025: true                     # Single top-level heading
+  MD041: true                     # First line should be a top-level heading
+
+  # Tables
+  MD055:
+    style: "leading_and_trailing" # Require pipes on both sides: | col | col |
+  MD056: true                     # All rows must have the same number of columns
+  MD058: true                     # Tables must be surrounded by blank lines
+  MD060:
+    style: "aligned"              # Pad table cells so pipes align vertically
 
   # Lists
   MD004:
-    style: "dash"                # Use - for unordered lists
-  MD005: true                    # Consistent list indentation
+    style: "dash"                 # Use - for unordered lists
+  MD005: true                     # Consistent list indentation
   MD007:
-    indent: 2                    # 2-space list indentation
+    indent: 2                     # 2-space list indentation
   MD029:
-    style: "ordered"             # Ordered list numbering (1. 2. 3.)
-  MD030: true                    # Spaces after list markers
-  MD032: true                    # Lists surrounded by blank lines
+    style: "ordered"              # Ordered list numbering (1. 2. 3.)
+  MD030: true                     # Spaces after list markers
+  MD032: true                     # Lists surrounded by blank lines
 
   # Whitespace
-  MD009: true                    # No trailing spaces
-  MD010: true                    # No hard tabs
+  MD009: true                     # No trailing spaces
+  MD010: true                     # No hard tabs
   MD012:
-    maximum: 1                   # No multiple consecutive blank lines
-  MD047: true                    # Files should end with a single newline
+    maximum: 1                    # No multiple consecutive blank lines
+  MD047: true                     # Files should end with a single newline
 
   # Lines
-  MD013: false                   # Disable line length limit (docs often have tables/links)
+  MD013: false                    # Disable line length limit (docs often have tables/links)
 
   # Code
-  MD014: true                    # Dollar signs in commands (don't include $ prefix)
-  MD031: true                    # Fenced code blocks surrounded by blank lines
-  MD040: true                    # Fenced code blocks should have a language specified
+  MD014: true                     # Dollar signs in commands (don't include $ prefix)
+  MD031: true                     # Fenced code blocks surrounded by blank lines
+  MD040: true                     # Fenced code blocks should have a language specified
   MD046:
-    style: "fenced"              # Use fenced code blocks, not indented
+    style: "fenced"               # Use fenced code blocks, not indented
 
   # Links
-  MD034: true                    # No bare URLs — use [text](url) format
+  MD034: true                     # No bare URLs — use [text](url) format
 
   # Misc
-  MD036: false                   # Disable "emphasis used instead of heading" (common in docs)
-  MD033: false                   # Allow inline HTML (needed for details/summary, etc.)
+  MD036: false                    # Disable "emphasis used instead of heading" (common in docs)
+  MD033: false                    # Allow inline HTML (needed for details/summary, etc.)
