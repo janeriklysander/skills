@@ -23,7 +23,7 @@ It includes:
 Run the open agent skills installer:
 
 ```bash
-npx skills@latest add janeriklysander/jel-claude-plugins
+npx skills@latest add janeriklysander/skills
 ```
 
 The installer opens an interactive wizard where you can choose:
@@ -36,13 +36,13 @@ The installer opens an interactive wizard where you can choose:
 For scripted installs, pass the choices as flags:
 
 ```bash
-npx skills@latest add janeriklysander/jel-claude-plugins --skill docs --agent pi --yes
+npx skills@latest add janeriklysander/skills --skill docs --agent pi --yes
 ```
 
 To install globally instead of into the current project:
 
 ```bash
-npx skills@latest add janeriklysander/jel-claude-plugins --skill docs --global --yes
+npx skills@latest add janeriklysander/skills --skill docs --global --yes
 ```
 
 ## Updating
