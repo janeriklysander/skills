@@ -1,9 +1,0 @@
-{
-  "name": "create-hook",
-  "version": "1.0.0",
-  "description": "Guide for creating Claude Code hooks with shell scripts",
-  "author": { "name": "Jan-Erik Lysander" },
-  "repository": "https://github.com/janeriklysander/jel-claude-plugins",
-  "license": "MIT",
-  "keywords": ["hooks", "automation", "claude-code"]
-}

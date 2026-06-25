@@ -1,5 +1,0 @@
-title: jel-claude-plugins
-description: Curated Claude Code plugins for documentation, domain design, and hook automation
-theme: jekyll-theme-primer
-kramdown:
-  parse_block_html: true
