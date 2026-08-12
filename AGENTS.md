@@ -39,6 +39,13 @@ Keep skill source harness-agnostic:
 - Do not add agent-specific install commands.
 - Keep bundled resources beside the skill that uses them.
 
+## Token efficiency
+
+- Keep skill instructions concise and free of duplicated guidance.
+- Put only the common path in `SKILL.md`; link conditional or exceptional reference material for progressive disclosure.
+- Keep model-invoked descriptions to the distinct triggers needed for invocation; use user-invoked skills when autonomous invocation is unnecessary.
+- Prefer a bundled deterministic script for skill work that can be reliably reduced to one; have the skill consume its compact output instead of rediscovering the result.
+
 ## Linting
 
 Run the docs linter after changing Markdown:
