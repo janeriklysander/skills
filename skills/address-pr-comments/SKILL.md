@@ -34,13 +34,13 @@ For `change` candidates, read only the necessary current local code or document 
 
 Present one compact proposal grouped into **Comment Groups**. Associate every affected item with its group. For every group include its items’ URLs, classifications, rationale, intended change or response, and narrowest meaningful verification. Keep unrelated changes separate and state the focused commit message each group is ready to use.
 
-Ask the user to approve all or selected groups.
+Ask the user to approve all or selected groups. This is the **scope gate**: it picks which groups get worked, nothing more. It does not approve any commit — every group still needs its own **commit gate** in step 4.3, no matter how many groups were approved together here.
 
 Do not modify files until approval. A discovered current-branch PR needs no confirmation. Treat a PR number or URL as the selected PR.
 
 ## 4. Work approved groups one by one
 
-Take approved groups in the order proposed. For each group:
+Take approved groups in the order proposed. For each group, work through 4.1-4.4 in order; do not batch multiple groups' drafting before a group's commit gate is cleared.
 
 1. Draft the change, if any, as real file edits, with its commit message. Verify it with the proposed check: behavioral checks for code, the relevant lint/check for documentation or formatting.
 2. Draft the reply for each of the group's items, using `user-tone-of-voice`:
@@ -49,7 +49,7 @@ Take approved groups in the order proposed. For each group:
    - `clarify`: the exact missing fact, no commit SHA.
    - `declined change`: the conflict and the alternative, no commit SHA.
    - Descriptions and SHA-less replies should aim for 20 words or fewer. Go over only when a shorter reply would lose meaning, and stay as concise as the point allows even then.
-3. Run `plannotator-review` for the code review, then pause and show the drafted commit messages and every drafted reply together for approval before committing anything.
+3. Run `plannotator-review` for the code review. Then clear this group's **commit gate**: pause and show the drafted commit message and every drafted reply for this group, and wait for explicit approval. The scope gate in step 3 never substitutes for this — approving the group selection is not approving the commit or the replies.
 4. On approval: commit, and push it — pushing before replying matters, since `reply-to-thread.sh` verifies the SHA against the remote. Then reply to each approved Review Thread with the thread `id` emitted by `fetch-comments.sh`; never make direct GitHub mutations:
 
    ```bash
