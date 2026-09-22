@@ -32,20 +32,35 @@ For `change` candidates, read only the necessary current local code or document 
 
 ## 3. Propose and wait
 
-Present one compact proposal grouped by **logical change**, rather than by feedback item. Associate every affected item with its change group. For every group include its items’ URLs, classifications, rationale, intended change or response, and narrowest meaningful verification. Keep unrelated changes separate and state the focused commit message each group is ready to use. Ask the user to approve all or selected groups.
+Present one compact proposal grouped into **Comment Groups**. Associate every affected item with its group. For every group include its items’ URLs, classifications, rationale, intended change or response, and narrowest meaningful verification. Keep unrelated changes separate and state the focused commit message each group is ready to use.
+
+Ask the user to approve all or selected groups.
 
 Do not modify files until approval. A discovered current-branch PR needs no confirmation. Treat a PR number or URL as the selected PR.
 
-## 4. Implement approved changes
+## 4. Work approved groups one by one
 
-Change only approved groups. Keep each group independently committable; make a separate focused commit when the user asks to commit. Verify each with the proposed check: behavioral checks for code; the relevant lint/check for documentation or formatting. Draft a concise response for every addressed item:
+Take approved groups in the order proposed. For each group:
 
-- change: change and verification;
-- reply: direct answer and evidence;
-- clarify: exact missing fact;
-- declined change: conflict and alternative.
+1. Draft the change, if any, as real file edits, with its commit message. Verify it with the proposed check: behavioral checks for code, the relevant lint/check for documentation or formatting.
+2. Draft the reply for each of the group's items, using `user-tone-of-voice`:
+   - `change` / `previously addressed`: `Addressed in <commit-sha>.`, plus an optional description when the change is non-obvious or deviates from the feedback.
+   - `reply`: a direct answer with evidence, no commit SHA.
+   - `clarify`: the exact missing fact, no commit SHA.
+   - `declined change`: the conflict and the alternative, no commit SHA.
+   - Descriptions and SHA-less replies should aim for 20 words or fewer. Go over only when a shorter reply would lose meaning, and stay as concise as the point allows even then.
+3. Run `plannotator-review` for the code review, then pause and show the drafted commit messages and every drafted reply together for approval before committing anything.
+4. On approval: commit, and push it — pushing before replying matters, since `reply-to-thread.sh` verifies the SHA against the remote. Then reply to each approved Review Thread with the thread `id` emitted by `fetch-comments.sh`; never make direct GitHub mutations:
 
-Do not post replies or resolve Review Threads unless the user explicitly asks. Never claim a PR-Level Comment was resolved; it has no resolution lifecycle.
+   ```bash
+   scripts/reply-to-thread.sh <review-thread-id> [--sha <commit-sha>] [--description <text>]
+   ```
+
+   `--sha` accepts only a 7- to 40-character hexadecimal SHA and is verified against the current checkout's remote GitHub repository before posting; when given, the reply is `Addressed in <sha>.` plus the description. Omit `--sha` for `reply`/`clarify`/`declined change` items — the reply becomes the description text, and a description is required when no SHA is given. Either way, the description tops out at 140 characters.
+
+5. Once the reply for the group posts successfully, continue with the next approved group automatically — no separate confirmation is needed to start it.
+
+Resolving a Review Thread afterward is a human-only action; nothing in this skill resolves threads. Never reply to or claim a PR-Level Comment was resolved either; it has no resolution lifecycle.
 
 ## Completion
 
