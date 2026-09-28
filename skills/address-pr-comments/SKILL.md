@@ -49,7 +49,7 @@ Take approved groups in the order proposed. For each group, work through 4.1-4.4
    - `clarify`: the exact missing fact, no commit SHA.
    - `declined change`: the conflict and the alternative, no commit SHA.
    - Descriptions and SHA-less replies should aim for 20 words or fewer. Go over only when a shorter reply would lose meaning, and stay as concise as the point allows even then.
-3. Run `plannotator-review` for the code review. Then clear this group's **commit gate**: pause and show the drafted commit message and every drafted reply for this group, and wait for explicit approval. The scope gate in step 3 never substitutes for this — approving the group selection is not approving the commit or the replies.
+3. Clear this group's **commit gate**: pause and show the drafted commit message and every drafted reply for this group, and wait for explicit approval. The scope gate in step 3 never substitutes for this — approving the group selection is not approving the commit or the replies.
 4. On approval: commit, and push it — pushing before replying matters, since `reply-to-thread.sh` verifies the SHA against the remote. Then reply to each approved Review Thread with the thread `id` emitted by `fetch-comments.sh`; never make direct GitHub mutations:
 
    ```bash

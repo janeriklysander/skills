@@ -37,6 +37,7 @@ else
 fi
 log "Fetching feedback for $url"
 api() { gh api graphql "$@"; }
+is_bot_report='(.body | test("<!-- sarif-pr-comment|<!-- linear-linkback -->"))'
 
 cursor=null
 thread_pages=0
@@ -65,7 +66,7 @@ while IFS= read -r thread; do
     cursor=$(jq -er '.data.node.comments.pageInfo.endCursor' <<<"$page")
   done
   log "Fetched $id with $(jq 'length' <<<"$comments") comment(s)"
-  jq -cn --argjson thread "$thread" --argjson comments "$comments" --arg pr_url "$url" '{kind:"review_thread", id:$thread.id, url:($comments[0].url // $pr_url), outdated:$thread.isOutdated, path:$thread.path, line:$thread.line, original_line:$thread.originalLine, comments:[$comments[] | {id, author:(.author.login // null), body}]}' >>"$tmpdir/items.jsonl"
+  jq -cn --argjson thread "$thread" --argjson comments "$comments" --arg pr_url "$url" '($comments | map(select('"$is_bot_report"' | not))) as $kept | select($kept | length > 0) | {kind:"review_thread", id:$thread.id, url:($kept[0].url // $pr_url), outdated:$thread.isOutdated, path:$thread.path, line:$thread.line, original_line:$thread.originalLine, comments:[$kept[] | {id, author:(.author.login // null), body}]}' >>"$tmpdir/items.jsonl"
 done <"$tmpdir/threads.jsonl"
 
 cursor=null
@@ -75,7 +76,7 @@ while :; do
   jq -e '.data.repository.pullRequest.comments' >/dev/null <<<"$page" || fail 'GitHub returned no pull-request comment data.'
   pr_comment_pages=$((pr_comment_pages + 1))
   log "Fetched PR-level-comment page $pr_comment_pages"
-  jq -c '.data.repository.pullRequest.comments.nodes[] | {kind:"pr_level_comment", id, url, author:(.author.login // null), body}' <<<"$page" >>"$tmpdir/items.jsonl"
+  jq -c '.data.repository.pullRequest.comments.nodes[] | select('"$is_bot_report"' | not) | {kind:"pr_level_comment", id, url, author:(.author.login // null), body}' <<<"$page" >>"$tmpdir/items.jsonl"
   has_next=$(jq -r '.data.repository.pullRequest.comments.pageInfo.hasNextPage' <<<"$page")
   [ "$has_next" = true ] || break
   cursor=$(jq -er '.data.repository.pullRequest.comments.pageInfo.endCursor' <<<"$page")
