@@ -20,7 +20,9 @@ case "$1 $2" in
   "api graphql")
     case "$*" in
       *addPullRequestReviewThreadReply*)
-        printf '%s\n' '{"data":{"addPullRequestReviewThreadReply":{"comment":{"id":"comment-1"}}}}'
+        [ "${FAKE_REPLY_SUCCEEDS:-true}" = true ] || exit 1
+        response='{"data":{"addPullRequestReviewThreadReply":{"comment":{"id":"comment-1","url":"https://github.com/octo/example/pull/1#discussion_r1"}}}}'
+        printf '%s\n' "${FAKE_REPLY_RESPONSE:-$response}"
         ;;
       *)
         exit 1
@@ -43,6 +45,8 @@ EOF
   run bash "$root/scripts/reply-to-thread.sh" thread-1 --sha abcdef1
 
   [ "$status" -eq 0 ]
+  [ "$output" = 'thread-1 https://github.com/octo/example/pull/1#discussion_r1' ]
+  grep -Fq 'comment { id url }' "$log"
   grep -Fq 'api repos/octo/example/commits/abcdef1' "$log"
   grep -Fq 'addPullRequestReviewThreadReply' "$log"
   grep -Fq 'threadId=thread-1' "$log"
@@ -104,4 +108,28 @@ EOF
 
   [ "$status" -ne 0 ]
   [ ! -s "$log" ]
+}
+
+@test "reply fails without a success line when the GitHub request fails" {
+  run bash -c 'FAKE_REPLY_SUCCEEDS=false bash "$1" thread-1 --description Answer >"$2"' \
+    _ "$root/scripts/reply-to-thread.sh" "$BATS_TEST_TMPDIR/stdout"
+
+  [ "$status" -eq 1 ]
+  [ "$output" = 'Could not reply to Review Thread.' ]
+  [ ! -s "$BATS_TEST_TMPDIR/stdout" ]
+}
+
+@test "reply fails without a success line when GitHub does not confirm the comment" {
+  for response in \
+    '{"data":{"addPullRequestReviewThreadReply":{"comment":null}}}' \
+    '{"data":{"addPullRequestReviewThreadReply":{"comment":{"url":"https://github.com/octo/example/pull/1#discussion_r1"}}}}' \
+    '{"data":{"addPullRequestReviewThreadReply":{"comment":{"id":"comment-1"}}}}'; do
+    export FAKE_REPLY_RESPONSE="$response"
+    run bash -c 'bash "$1" thread-1 --description Answer >"$2"' \
+      _ "$root/scripts/reply-to-thread.sh" "$BATS_TEST_TMPDIR/stdout"
+
+    [ "$status" -eq 1 ]
+    [ "$output" = 'GitHub did not confirm the Review Thread reply.' ]
+    [ ! -s "$BATS_TEST_TMPDIR/stdout" ]
+  done
 }

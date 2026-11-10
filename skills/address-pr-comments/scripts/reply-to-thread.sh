@@ -59,9 +59,11 @@ else
 fi
 
 response=$(gh api graphql \
-  -f query='mutation($threadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $threadId, body: $body}) { comment { id } } }' \
+  -f query='mutation($threadId: ID!, $body: String!) { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $threadId, body: $body}) { comment { id url } } }' \
   -f threadId="$thread_id" \
   -f body="$body") || fail 'Could not reply to Review Thread.'
 
-jq -e '.data.addPullRequestReviewThreadReply.comment.id' >/dev/null <<<"$response" ||
+comment_url=$(jq -er '.data.addPullRequestReviewThreadReply.comment | select(.id) | .url // empty' <<<"$response") ||
   fail 'GitHub did not confirm the Review Thread reply.'
+
+printf '%s %s\n' "$thread_id" "$comment_url"
