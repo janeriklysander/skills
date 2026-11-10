@@ -58,6 +58,8 @@ Take approved groups in the order proposed. For each group, work through 4.1-4.4
 
    `--sha` accepts only a 7- to 40-character hexadecimal SHA and is verified against the current checkout's remote GitHub repository before posting; when given, the reply is `Addressed in <sha>.` plus the description. Omit `--sha` for `reply`/`clarify`/`declined change` items — the reply becomes the description text, and a description is required when no SHA is given. Either way, the description tops out at 140 characters.
 
+   On success, the script prints the thread ID and posted comment URL. Report the printed URL back to the user.
+
 5. Once the reply for the group posts successfully, continue with the next approved group automatically — no separate confirmation is needed to start it.
 
 Resolving a Review Thread afterward is a human-only action; nothing in this skill resolves threads. Never reply to or claim a PR-Level Comment was resolved either; it has no resolution lifecycle.
